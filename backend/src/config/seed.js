@@ -1,0 +1,671 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import connectDB from './db.js';
+import User from '../models/user.model.js';
+import Product from '../models/product.model.js';
+import Category from '../models/category.model.js';
+import Testimonial from '../models/testimonial.model.js';
+
+dotenv.config();
+
+const seedData = async () => {
+  try {
+    await connectDB();
+
+    // Clear existing data
+    await User.deleteMany({});
+    await Product.deleteMany({});
+    await Category.deleteMany({});
+    await Testimonial.deleteMany({});
+
+    console.log('Database cleared.');
+
+    // 1. Create Default Admin & Customer
+    const adminUser = new User({
+      name: 'Sunil Bhosale',
+      email: 'admin@aryamalhar.org',
+      password: 'Password@123',
+      phone: '9876543210',
+      role: 'admin'
+    });
+
+    const customerUser = new User({
+      name: 'Rahul Patil',
+      email: 'rahul@gmail.com',
+      password: 'Password@123',
+      phone: '9822001122',
+      role: 'customer',
+      addresses: [
+        {
+          fullName: 'Rahul Patil',
+          phone: '9822001122',
+          addressLine1: 'Flat 402, Shanti Niwas, Shivaji Nagar',
+          addressLine2: 'Near Agriculture College',
+          city: 'Pune',
+          state: 'Maharashtra',
+          postalCode: '411005',
+          isDefault: true
+        }
+      ]
+    });
+
+    await adminUser.save();
+    await customerUser.save();
+    console.log('Seeded Admin and Customer Accounts.');
+
+    // 2. Create Categories
+    const categoriesData = [
+      {
+        name: 'Ayurvedic & Go-Products',
+        slug: 'ayurvedic',
+        description: 'Authentic Go-Ark, Ghanvati, Panchagavya medicines & health tonics.',
+        image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=600&auto=format&fit=crop'
+      },
+      {
+        name: 'Personal & Healthcare',
+        slug: 'personal-care',
+        description: 'Herbal soaps, oils, dhoop, facepacks & skin remedies.',
+        image: 'https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=600&auto=format&fit=crop'
+      },
+      {
+        name: 'Organic Grains & Food',
+        slug: 'grains',
+        description: 'Pure, pesticide-free grains grown locally by farmers in Maharashtra.',
+        image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?q=80&w=600&auto=format&fit=crop'
+      },
+      {
+        name: 'Fresh Vegetables',
+        slug: 'vegetables',
+        description: 'Harvested daily, loaded with nutrients, and 100% certified organic.',
+        image: 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=600&auto=format&fit=crop'
+      },
+      {
+        name: 'Organic Fruits',
+        slug: 'fruits',
+        description: 'Naturally sweet and organic fruits including seasonal specialties.',
+        image: 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?q=80&w=600&auto=format&fit=crop'
+      },
+      {
+        name: 'Organic Bio-Fertilizers & Bio-Pesticides',
+        slug: 'fertilizers',
+        description: 'Panchagavya crop promoters, Dashparni Ark, vermicompost & bio-inputs.',
+        image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=600&auto=format&fit=crop'
+      }
+    ];
+
+    const seededCategories = await Category.insertMany(categoriesData);
+    console.log(`Seeded ${seededCategories.length} Categories.`);
+
+    // 3. Create Products
+    const productsData = [
+      // --- GO-ARK (गोमूत्र अर्क) ---
+      {
+        name: 'Chandrama Ark (चंद्रमा अर्क)',
+        description: 'गोमूत्र अर्क - पित्त, पचनवाढ/कमी, व मूळव्याध निवारक अर्क (Digestive balance, acidity control & piles relief Go-Ark).',
+        category: 'ayurvedic',
+        price: 120,
+        comparePrice: 150,
+        stock: 100,
+        images: ['https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 24,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Tulsi Ark (तुळशी अर्क)',
+        description: 'गोमूत्र अर्क - कफ, ताप, क्रॉनिकल, मूळव्याध, मलेरिया, डेंग्यू, फ्लू व रोगप्रतिकारशक्ती वर्धक अर्क (Tulsi Immunity & Anti-Viral Health Ark).',
+        category: 'ayurvedic',
+        price: 140,
+        comparePrice: 175,
+        stock: 120,
+        images: ['https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 38,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Parijatak Ark (पारिजातक अर्क)',
+        description: 'गोमूत्र अर्क - संधीवात, सांधेदुखी व मानदुखीवर अत्यंत गुणकारी (Parijatak Joint Pain & Arthritis Care Distillate).',
+        category: 'ayurvedic',
+        price: 150,
+        comparePrice: 190,
+        stock: 85,
+        images: ['https://images.unsplash.com/photo-1512290900673-07973715d2a9?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 19,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Punarnava Ark (पुनर्नवा अर्क)',
+        description: 'गोमूत्र अर्क - किडणी व लिव्हरचे कार्य सुधारणारा शुद्ध अर्क (Punarnava Kidney & Liver Care Distillate).',
+        category: 'ayurvedic',
+        price: 160,
+        comparePrice: 200,
+        stock: 90,
+        images: ['https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 29,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Sarpagandha Ark (सर्पगंधा अर्क)',
+        description: 'गोमूत्र अर्क - उच्च रक्तदाब, मानसिक ताण व पेशी आरोग्यासाठी (Sarpagandha Stress & Blood Pressure Care Ark).',
+        category: 'ayurvedic',
+        price: 180,
+        comparePrice: 220,
+        stock: 70,
+        images: ['https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.6,
+        reviewCount: 15,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Saptarangi Ark (सप्तरंगी अर्क)',
+        description: 'गोमूत्र अर्क - रक्तातील साखर व डायबिटीज नियंत्रणासाठी उपयुक्त (Saptarangi Blood Sugar Control Ark).',
+        category: 'ayurvedic',
+        price: 170,
+        comparePrice: 210,
+        stock: 95,
+        images: ['https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 31,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Varun Ark (वरुण अर्क)',
+        description: 'गोमूत्र अर्क - किडणी फिल्टरेशन व मूत्रविकार निवारक (Varun Urinary & Kidney Filtration Support Ark).',
+        category: 'ayurvedic',
+        price: 150,
+        comparePrice: 185,
+        stock: 80,
+        images: ['https://images.unsplash.com/photo-1512290900673-07973715d2a9?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 17,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Arjun Ark (अर्जुन अर्क)',
+        description: 'गोमूत्र अर्क - हृदय विकार, कोलेस्ट्रॉल व कार्डिओ आरोग्यासाठी (Arjun Heart Health & Cardio Support Ark).',
+        category: 'ayurvedic',
+        price: 160,
+        comparePrice: 200,
+        stock: 110,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 26,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Pashanbhed Ark (पाषाणभेद अर्क)',
+        description: 'गोमूत्र अर्क - मुतखडा (Kidney Stone) नैसर्गिकरीत्या विरघळवण्यासाठी (Pashanbhed Kidney Stone Relief Ark).',
+        category: 'ayurvedic',
+        price: 175,
+        comparePrice: 215,
+        stock: 100,
+        images: ['https://images.unsplash.com/photo-1576073719768-3f5f3e9a7e08?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 42,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Gulwel Ark (गुळवेल अर्क)',
+        description: 'गोमूत्र अर्क - पित्त, शारीरिक उष्णता व तीव्र रोगप्रतिकारशक्ती वर्धक (Gulwel/Giloy Heat Balance & Immunity Booster).',
+        category: 'ayurvedic',
+        price: 130,
+        comparePrice: 160,
+        stock: 130,
+        images: ['https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 30,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Neem Ark (नीम अर्क)',
+        description: 'गोमूत्र अर्क - बाह्य उपयोगासाठी, त्वचा रोग, पिंपल्स व अ‍ॅलर्जी निवारक (Pure Neem Distillate Skin Protector).',
+        category: 'personal-care',
+        price: 110,
+        comparePrice: 140,
+        stock: 140,
+        images: ['https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.6,
+        reviewCount: 22,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Zendu Ark (झेंडू अर्क)',
+        description: 'गोमूत्र अर्क - बाह्य उपयोगासाठी, त्वचेवरील जखमा व संसर्गावर उत्तम (Marigold Healing & Wound Care Ark).',
+        category: 'personal-care',
+        price: 125,
+        comparePrice: 155,
+        stock: 90,
+        images: ['https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 14,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Nandi Ark (नंदी अर्क)',
+        description: 'गोमूत्र अर्क - सुदृढ संतती व जनन क्षमता वाढीसाठी विशेष अर्क (Nandi Reproductive Health & Vitality Tonic).',
+        category: 'ayurvedic',
+        price: 210,
+        comparePrice: 260,
+        stock: 60,
+        images: ['https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 27,
+        organic: true,
+        status: 'active'
+      },
+
+      // --- GHANVATI (घनवटी - TABLETS) ---
+      {
+        name: 'Triphala Ghanvati (त्रिफळा घनवटी)',
+        description: 'त्रिदोषनाशक गोळ्या - पचन सुधारणा, बद्धकोष्ठता व संपूर्ण शरीर शुध्दीसाठी (Triphala Digestive Tablets).',
+        category: 'ayurvedic',
+        price: 140,
+        comparePrice: 175,
+        stock: 150,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 35,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Bhasma Ghanvati (भस्म घनवटी)',
+        description: 'दमा, कफ, श्वसन विकार व पेशी संरक्षणासाठी (Bhasma Respiratory & Immunity Care Tablets).',
+        category: 'ayurvedic',
+        price: 190,
+        comparePrice: 240,
+        stock: 75,
+        images: ['https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 18,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Sarpagandha Ghanvati (सर्पगंधा घनवटी)',
+        description: 'उच्च रक्तदाब, मनःशांती व पेशी पुनरुज्जीवन घनवटी (Sarpagandha Blood Pressure Control Tablets).',
+        category: 'ayurvedic',
+        price: 180,
+        comparePrice: 220,
+        stock: 80,
+        images: ['https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 20,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Saptarangi Ghanvati (सप्तरंगी घनवटी)',
+        description: 'रक्तातील साखर व मधुमेह (Sugar) नियंत्रक गोळ्या (Saptarangi Diabetes Support Tablets).',
+        category: 'ayurvedic',
+        price: 165,
+        comparePrice: 200,
+        stock: 110,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 40,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Punarnava Ghanvati (पुनर्नवा घनवटी)',
+        description: 'किडणी, लिव्हर व मूत्रसंस्थेचे आरोग्य सुधारणाऱ्या घनवटी गोळ्या (Punarnava Kidney & Liver Care Tablets).',
+        category: 'ayurvedic',
+        price: 175,
+        comparePrice: 215,
+        stock: 90,
+        images: ['https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 23,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Arjun Ghanvati (अर्जुन घनवटी)',
+        description: 'हृदय स्नायू बळकट करणारे व कोलेस्ट्रॉल नियंत्रक (Arjun Heart Muscles Vitality Tablets).',
+        category: 'ayurvedic',
+        price: 160,
+        comparePrice: 195,
+        stock: 120,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 28,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Pashanbhed Ghanvati (पाषाणभेद घनवटी)',
+        description: 'पित्त खडा व मुतखडा (Kidney Stone) निवारक घनवटी (Gallbladder & Kidney Stone Relief Tablets).',
+        category: 'ayurvedic',
+        price: 185,
+        comparePrice: 230,
+        stock: 105,
+        images: ['https://images.unsplash.com/photo-1576073719768-3f5f3e9a7e08?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 36,
+        organic: true,
+        status: 'active'
+      },
+
+      // --- PANCHAGAVYA SPECIALTIES (पंचगव्य औषधी व उत्पादने) ---
+      {
+        name: 'Panchagavya Organic Dhoop Batti (पंचगव्य धूप)',
+        description: 'शेण, निमतेल, निरगुडी पाने, खोबरेल तेल, कापूर, तूप, अक्षतायुक्त शुद्ध वातावरण निर्मिती धूप (Pure Natural Dhoop Cones).',
+        category: 'personal-care',
+        price: 80,
+        comparePrice: 100,
+        stock: 300,
+        images: ['https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 52,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Karnaushadhi Ear Care Drops (कर्णौषधी)',
+        description: 'कानावरील सर्व संसर्ग, वेदना व कान दुखीवर - गोमूत्र + पंचऔषधी (Ayurvedic Panchagavya Ear Drops).',
+        category: 'ayurvedic',
+        price: 95,
+        comparePrice: 120,
+        stock: 140,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 16,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Netraushadhi Eye Care Drops (नेत्रौषधी)',
+        description: 'डोळ्याचे सर्व आजार, मोतीबिंदू, कांचबिंदू - गोमूत्र + गुलाबजल + मध (Herbal Panchagavya Vision Eye Drops).',
+        category: 'ayurvedic',
+        price: 110,
+        comparePrice: 140,
+        stock: 160,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 44,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Vednashamak Pain Relief Massage Oil (वेदनाशामक तेल)',
+        description: 'गोबर रस, मोहरी तेल, धोतारा, निरगुडी - सर्व प्रकारचे सांधेदुखी व स्नायू दुखण्यावर मालिश तेल (Joint & Muscle Pain Relief Massage Oil).',
+        category: 'ayurvedic',
+        price: 190,
+        comparePrice: 230,
+        stock: 120,
+        images: ['https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 39,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Kesh Taila Ayurvedic Hair Oil (पंचगव्य केशतेल)',
+        description: 'तीळतेल, नागरमोथा, आवळा, माका - सर्व केशविकार, केस गळती, कोंडा व पांढरे होण्यावर (Panchagavya Anti-Hairfall & Growth Hair Oil).',
+        category: 'personal-care',
+        price: 170,
+        comparePrice: 210,
+        stock: 200,
+        images: ['https://images.unsplash.com/photo-1526947425960-945c6e72858f?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 48,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Panchagavya Ghruta (पंचगव्य घृत)',
+        description: 'गोबर, गोमूत्र, दूध, तूप, ताक - मेंदूचे विकार, स्मरणशक्ती, निद्रानाश व मज्जासंस्था आरोग्य (Pure Brain Vitality & Memory Ghruta).',
+        category: 'ayurvedic',
+        price: 350,
+        comparePrice: 420,
+        stock: 80,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 33,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Gomay Healing Balm (गोमय मलम)',
+        description: 'गोमूत्र, क्षार, गेरू, तूप - खड्डे, भेगा, त्वचा रोग व जखमांवर उत्तम मलम (Panchagavya Natural Skin Healing Balm).',
+        category: 'personal-care',
+        price: 90,
+        comparePrice: 115,
+        stock: 170,
+        images: ['https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.7,
+        reviewCount: 21,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Ayurvedic Herbal Dant Manjan (दंतमंजन)',
+        description: 'शेणी भस्म, सेंधेलवण, पादेलोण, लवंग, अमृताधारा, ओवा - दात व हिरड्यांचे आरोग्य (Natural Teeth Whitening & Gum Protection Powder).',
+        category: 'personal-care',
+        price: 75,
+        comparePrice: 95,
+        stock: 250,
+        images: ['https://images.unsplash.com/photo-1559591937-e58af10079d3?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 29,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Sanjeevani Ras (संजीवनी रस - Women Wellness)',
+        description: 'चंद्रमा अर्क, साखर, शतावरी, श्यामुखी - महिलांच्या हार्मोनल समतोल व आरोग्यासाठी (Ayurvedic Women Vitality Tonic).',
+        category: 'ayurvedic',
+        price: 220,
+        comparePrice: 270,
+        stock: 90,
+        images: ['https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 37,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Balpal Ras (बालपाल रस - Kids Immunity)',
+        description: 'गोमूत्र अर्क, जुना गूळ, दूध, दमा व फुफ्फुस विकारावर लहान मुलांसाठी उत्तम (Children Immunity & Respiratory Health Ras).',
+        category: 'ayurvedic',
+        price: 180,
+        comparePrice: 220,
+        stock: 85,
+        images: ['https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 25,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Panchagavya Organic Herbal Soap (साबण)',
+        description: 'निमतेल, नारळतेल, मुलतानी माती, गेरू, हळद्युक्त 100% नैसर्गिक त्वचा सौंदर्य साबण (Natural Herbal Bathing Soap).',
+        category: 'personal-care',
+        price: 60,
+        comparePrice: 75,
+        stock: 400,
+        images: ['https://images.unsplash.com/photo-1608248597260-2fe4d50eb738?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 65,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Ayurvedic Herbal Face Pack (फेसपॅक)',
+        description: 'मुलतानी माती, दूध, ताक, तूप, आंबेहळद, केसर - त्वचा निखार व डाग घालवण्यासाठी (Herbal Glow Face Pack Powder).',
+        category: 'personal-care',
+        price: 130,
+        comparePrice: 160,
+        stock: 180,
+        images: ['https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 41,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Amritdhara Drops (अमृताधारा)',
+        description: 'कापूर, ओवा अर्क, पुदीना सत - दातदुखी, सर्दी, पडसे, खोकला, ताप व पोटदुखीवर प्रथमोपचार ड्रॉप्स (First Aid Herbal Essence Drops).',
+        category: 'ayurvedic',
+        price: 105,
+        comparePrice: 130,
+        stock: 220,
+        images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 58,
+        organic: true,
+        status: 'active'
+      },
+
+      // --- ORGANIC AGRICULTURE & FARM PRODUCTS ---
+      {
+        name: 'Panchagavya Crop Growth Promoter (पंचगव्य - पिकांवाढ संजीवक)',
+        description: 'शेतीसाठी पिकांची भरघोस वाढ, रोगप्रतिकारशक्ती व दर्जेदार उत्पादनासाठी सेंद्रिय संजीवक (Organic Crop Booster Liquid Fertilizer).',
+        category: 'fertilizers',
+        price: 280,
+        comparePrice: 350,
+        stock: 300,
+        images: ['https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 62,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Dashparni Ark Bio-Pesticide (दशपर्णी अर्क - नैसर्गिक कीटकनाशक)',
+        description: '१० वनस्पतींच्या पानांपासून बनवलेले सेंद्रिय नैसर्गिक जैविक कीटकनाशक (100% Organic Botanical Bio-Pesticide).',
+        category: 'fertilizers',
+        price: 320,
+        comparePrice: 400,
+        stock: 250,
+        images: ['https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 47,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Pure Desi Cow Dung Cakes / Sheni (शेणी / गोवऱ्या)',
+        description: 'शुद्ध देशी गाईच्या शेणापासून बनवलेल्या शेणी - पूजा, हवन व सेंद्रिय खतासाठी उपयुक्त (Organic Desi Cow Dung Cakes).',
+        category: 'fertilizers',
+        price: 120,
+        comparePrice: 150,
+        stock: 500,
+        images: ['https://images.unsplash.com/photo-1599599810769-bcde5a160d32?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 71,
+        organic: true,
+        status: 'active'
+      },
+
+      // --- EXISTING GRAINS & PRODUCE ---
+      {
+        name: 'Indrayani Premium Rice (Unpolished)',
+        description: 'Authentic Indrayani unpolished rice. Grown in the Maval region of Maharashtra, famous for its sweet aroma and soft texture.',
+        category: 'grains',
+        price: 95,
+        comparePrice: 120,
+        stock: 150,
+        images: ['https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.8,
+        reviewCount: 34,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Lokwan Organic Wheat Flour (Atta)',
+        description: 'Stone-ground Lokwan wheat flour containing 100% bran. Free from preservatives, bleaching agents, or synthetic elements.',
+        category: 'grains',
+        price: 65,
+        comparePrice: 80,
+        stock: 200,
+        images: ['https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.6,
+        reviewCount: 22,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Fresh Organic Onions (Nashik Red)',
+        description: 'Sourced directly from Nashik farms. Certified organic red onions known for their pungent taste and excellent storage life.',
+        category: 'vegetables',
+        price: 45,
+        comparePrice: 55,
+        stock: 500,
+        images: ['https://images.unsplash.com/photo-1618519764620-7403abdbfee9?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.5,
+        reviewCount: 18,
+        organic: true,
+        status: 'active'
+      },
+      {
+        name: 'Devgad Alphonso Mangoes (Hapus)',
+        description: 'Geographical Indication (GI) tagged Devgad Alphonso mangoes. Ripened naturally using traditional hay beds.',
+        category: 'fruits',
+        price: 900,
+        comparePrice: 1200,
+        stock: 80,
+        images: ['https://images.unsplash.com/photo-1553279768-865429fa0078?q=80&w=800&auto=format&fit=crop'],
+        rating: 4.9,
+        reviewCount: 42,
+        organic: true,
+        status: 'active'
+      }
+    ];
+
+    const seededProducts = await Product.insertMany(productsData);
+    console.log(`Seeded ${seededProducts.length} Products.`);
+
+    // 4. Create Testimonials
+    const testimonialsData = [
+      {
+        name: 'Dnyaneshwar Shinde',
+        quote: 'Using the Panchagavya Bio-Fertilizer and Dashparni Ark has completely revived my brinjal and tomato crops. Sunil Bhosale\'s expert advice has changed the way I farm.',
+        rating: 5,
+        role: 'Farmer, Satara District',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop'
+      },
+      {
+        name: 'Sunita Deshmukh',
+        quote: 'The Tulsi Ark and Amritdhara drops are amazing for my family! Pure, natural, and highly effective for immunity.',
+        rating: 5,
+        role: 'Home Maker, Mumbai',
+        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop'
+      },
+      {
+        name: 'Aniket Kulkarni',
+        quote: 'Pashanbhed Ark and Kesh Taila hair oil are outstanding. Very authentic Panchagavya products directly from Arya Malhar.',
+        rating: 5,
+        role: 'Software Engineer, Pune',
+        photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop'
+      }
+    ];
+
+    const seededTestimonials = await Testimonial.insertMany(testimonialsData);
+    console.log(`Seeded ${seededTestimonials.length} Testimonials.`);
+
+    console.log('Database Seeding Completed Successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error(`Seeding Failed: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+seedData();
